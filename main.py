@@ -10,9 +10,17 @@ def menu():
     print("5. Delete")
     print("6. Assess Patient")
     print("7. View Assessment")
-    print("8. Exit")
+    print("8. Patient priority")
+    print("9.Exit")
 
-    choice = int(input("Enter Your Choice "))
+    while True:
+        try:
+            choice = int(input("Enter Your Choice : "))
+            if 1 <= choice <= 9:
+                break
+            print("Invalid Choice. Enter a number between 1 and 9.")
+        except ValueError:
+            print("Invalid input. Enter numbers only.")
     print("You Selected : ", choice)
     print("-"*35)
     if choice == 1:
@@ -29,16 +37,20 @@ def menu():
           assess_patient()
     elif choice == 7:
          view_assessments()
-    elif choice == 8:
+    elif choice ==8:
+         patient_priority()
+    elif choice == 9:
          print("Thanks for Visiting")
     else:
           print("Invalid Choice")
+          return menu()
 def generate_patient_id():
     file = open("patients.csv", "r")
     used_ids = []
     for line in file:
         patient_data = line.strip().split(",")
-        used_ids.append(patient_data[0])
+        if len(patient_data) == 6:
+             used_ids.append(patient_data[0])
     file.close()
     count = 1
     while True:
@@ -52,7 +64,7 @@ def show_bed_status():
     file = open("patients.csv", "r")
     for line in file:
         patient = line.strip().split(",")
-        if patient:
+        if len(patient) ==6:
             bed_number = int(patient[5])
             if bed_number not in occupied_beds:
                 occupied_beds.append(bed_number)
@@ -80,16 +92,22 @@ def register_patient():
                 patient_id = generate_patient_id()
                 print("Patient ID :", patient_id)
                 while True:
+                     print("main Menu - Press 0")
                      patient_name = input("Enter Patient Name : ").strip()
+                     if patient_name =="0":
+                          return menu()      
                      if patient_name != "":
                           break
                      print("Patient Name cannot be empty. Please enter a name.")
                 
                 while True:
-                     age = int(input("Enter Age : "))
-                     if 0 <= age <= 120:
+                    try:
+                        age = int(input("Enter Age : "))
+                        if 0 <= age <= 120:
                           break
-                     print("Invalid Age. Enter a value between 0 and 120.")
+                        print("Invalid Age. Enter a value between 0 and 120.")
+                    except ValueError:
+                         print("Invalid Age. Enter numbers only.")
 
                 while True:
                      gender = input("Enter Gender : ").lower()
@@ -120,7 +138,8 @@ def register_patient():
                 existing_id = ""
                 for line in file:
                      patient_data = line.strip().split(",")
-                     if (patient_data[1].lower() == patient_name.lower()
+                     if len(patient_data) == 6:
+                         if (patient_data[1].lower() == patient_name.lower()
                          and int(patient_data[2]) == age and patient_data[3].lower() == gender.lower()
                          and patient_data[5] == bed_number):
 
@@ -144,32 +163,29 @@ def register_patient():
                 print("Age : ", age)
                 print("Gender : ", gender)
                 print("Diagnosis : ", diagnosis)
-                print("Bed Number : ", bed_number)  
+                print("Bed Number : ", bed_number)
+                return menu()  
 def view_patient():
     print("---View Patient Details---")
     print("_" * 40)
-    while True:
-        patient_id = input("Enter Patient ID (or 0 to go back): ")
-        if patient_id == "0":
-            return menu()
-        found = False
-        file = open("patients.csv", "r")
-        for line in file:
+    file = open("patients.csv", "r")
+    patients =[]
+    for line in file:
             patient = line.strip().split(",")
-            if patient[0] == patient_id:
-                found = True
-                print("\nPatient Details")
+            if len(patient) == 6  :
+                patients.append(patient)
+    file.close()
+    print ("Total Patients : ", len(patients))
+    print("\nPatient Details")
+    for patient in patients:
+                print("-"* 20)
                 print("Patient ID -", patient[0])
                 print("Patient Name -", patient[1])
                 print("Age -", patient[2])
                 print("Gender -", patient[3])
                 print("Diagnosis -", patient[4])
                 print("Bed Number -", patient[5])
-                break
-        file.close()
-        if found:
-            break
-        print("Patient not found. Enter a valid Patient ID.",)
+                print("-"*20)
 
 def search_patient():
     print("---Search Patient---")
@@ -203,6 +219,8 @@ def search_patient():
         found = False
         for line in file:
             patient = line.strip().split(",")
+            if len(patient) != 6:
+                 continue
             if patient[search_index].strip().lower() == search_value.lower():
                 found = True
                 print("\nPatient Details")
@@ -220,15 +238,17 @@ def search_patient():
 
 def edit_patient():
       print("\nEdit Patient Details")
-      patient_id = input("Enter Patient ID : ")
+      patient_id = input("Enter Patient ID : ").strip().upper()
       patients = []
       found = False
       file = open("patients.csv", "r")
       for line in file:
-             patient = line.split(",")
+             patient = line.strip().split(",")
+             if len(patient) !=6:
+                  continue
              if patient[0]==patient_id:
               found = True
-              print("Found")
+              print("\nFound")
               print("Patient ID - ", patient[0])
               print("Patient Name - ", patient[1])
               print("Age - ", patient[2])
@@ -240,28 +260,66 @@ def edit_patient():
               print("2. Edit Age")
               print("3. Edit Diagnosis")
               print("4. Edit Bed Number")
-              choice = int(input("Enter Your Choice : "))
+              while True:
+                   try:
+                        choice = int(input("Enter Your Choice : "))
+                        if 1 <= choice <= 4:
+                             break
+                        print("Invalid choice. Enter a number between 1 and 4.")
+                   except ValueError:
+                        print("Invalid input. Enter numbers only.")
               if choice == 1:
                     print("Edit Name")
-                    new_name = input("New Name : ")
+                    new_name = input("New Name : ").strip()
                     patient[1] = new_name
                     print("Updated")
               elif choice == 2:
-                     new_age= input("Enter New Age : ")
-                     patient[2] = new_age
-                     print("Updated")
+                   while True:
+                        try:
+                             new_age = int(input("Enter New Age : "))
+                             if 0 <= new_age <= 120:
+                                  break
+                             print("Invalid Age. Enter a value between 0 and 120.")
+                        except ValueError:
+                             print("Invalid Age. Enter numbers only.")
+                   patient[2] = str(new_age)
+                   print("Updated")
 
               elif choice == 3:
-                    new_diagnosis = input("Enter New Diagnosis : ")
+                    new_diagnosis = input("Enter New Diagnosis : ").strip()
                     patient[4] = new_diagnosis
                     print("Updated")
 
               elif choice == 4:
-                    new_bed = input("Enter New Bed Number : ")
-                    patient[5] = new_bed  
-                    print("Updated")   
+                   available_beds = show_bed_status()
+                   current_bed = patient[5]
+                   if current_bed not in available_beds:
+                        available_beds.append(current_bed)
+                   while True:
+                             new_bed = input("Enter New Bed Number : ")
+                             if new_bed.isdigit() and 1<= int(new_bed) <= 50:
+                                  if int(new_bed) in available_beds:
+                                       patient[5] = new_bed 
+                                       print("Updated")
+                                       break
+                                  else:
+                                    print("Bed", new_bed, "is already occupied.")
+                                    print("Please choose an available bed.")
+                             else:
+                                 print("Invalid Bed Number. Enter a valid number between 1 to 50.")
               else:
                     print("Invalid choice")
+                     
+              if found:
+                 print("\nPatient Details Updated Successfully")
+                 print("-" * 30)
+                 print("Patient ID - ", patient[0])
+                 print("Patient Name - ", patient[1])
+                 print("Age - ", patient[2])
+                 print("Gender - ", patient[3])
+                 print("Diagnosis - ", patient[4])
+                 print("Bed Number - ", patient[5])
+                 print("-" * 30)
              patients.append(patient)
       if found == False:
                  print("Patient Not Found")
@@ -270,9 +328,11 @@ def edit_patient():
 
       for patient in patients:
              file.write(",".join(patient) + "\n")
-
       file.close()
-      print("Patient Details Updated Successfully")
+      print("Successfully updated")
+      return menu()
+      
+   
 def delete_patient():
       print("\n---Delete Patient---")
       patient_id = input("Enter Patient ID : ").strip().upper()
@@ -280,7 +340,9 @@ def delete_patient():
       file = open("patients.csv", "r")
       found = False
       for line in file:
-        patient = line.split(",")
+        patient = line.strip().split(",")
+        if len(patient) != 6:
+             continue
         if patient[0] == patient_id:
             found = True
             print("\nPatient Found")
@@ -293,7 +355,14 @@ def delete_patient():
 
             print("1. Delete")
             print("2. Ignore")
-            confirm = int(input("\nAre you sure you want to delete? : "))
+            while True:
+                 try:
+                      confirm = int(input("\nEnter Your Choice : "))
+                      if confirm in [1, 2]:
+                           break
+                      print("Invalid choice. Enter 1 or 2.")
+                 except ValueError:
+                      print("Invalid input. Enter numbers only.")
             if confirm == 1:
                 print("Patient Selected for Deletion")
                 continue
@@ -317,6 +386,7 @@ def delete_patient():
 
       file.close()
       print("Patient details done sucesfully")
+      return menu()
 
 def assess_blood_pressure(systolic, diastolic):
 
@@ -383,127 +453,247 @@ def assess_respiratory_rate(respiratory_rate):
         return "NORMAL"
 
 def assess_patient():
-    print("\n--- ICU Patient Assessment ---")
+    print("---Patient Assessment---")
+    print("-" * 40)
+    patient_id = input("Enter Patient ID : ").strip().upper()
+    file = open("patients.csv", "r")
+    patient_found = False
+    patient_name = ""
+    bed_number = ""
+    for line in file:
+        patient = line.strip().split(",")
+        if len(patient) != 6:
+            continue
+        if patient[0].upper() == patient_id:
+            patient_found = True
+            patient_name = patient[1]
+            bed_number = patient[5]
+            break
+    file.close()
+    if patient_found == False:
+        print("Patient Not Found.")
+        return
+    print("\nPatient Details")
+    print("-"*20)
+    print("Patient ID   :", patient_id)
+    print("Patient Name :", patient_name)
+    print("Bed Number   :", bed_number)
+    print("-"*20)
 
-    patient_id = input("Enter Patient ID : ")
+    file = open("assessments.csv", "r")
+    already_assessed = False
+    for line in file:
+        assessment = line.strip().split(",")
+        if len(assessment) > 0:
+            if assessment[0].upper() == patient_id:
+                already_assessed = True
+                break
+    file.close()
 
-    systolic = int(input("Enter Systolic BP : "))
-    diastolic = int(input("Enter Diastolic BP : "))
-    bp_status = assess_blood_pressure(systolic, diastolic)
-    print("Blood Pressure :", bp_status)
+    if already_assessed:
+        print("\nPatient", patient_id, "has already been assessed.")
+        print("Duplicate assessment is not allowed.")
+        return
+    print("\nEnter Clinical Parameters")
+    print("-"*20)
+    while True:
+        try:
+             systolic = int(input("Enter Systolic BP : "))
+             if systolic > 0:
+                      break
+             print("Invalid Systolic BP.")
+        except ValueError:
+             print("Invalid Systolic BP. Enter numbers only.")
 
     while True:
-         spo2 = int(input("Enter SpO2 : "))
-         if 0 <= spo2 <= 100:
-             break
-         print("Invalid SpO2. Enter a value between 0 and 100.")
-    spo2_status = assess_spo2(spo2)
-    print("SpO2 :", spo2_status)
+        try:
+             diastolic = int(input("Enter Diastolic BP : "))
+             if diastolic > 0:
+                    break
+             print("Invalid Diastolic BP.")
+        except ValueError:
+             print("Invalid Diastolic BP. Enter numbers only.")
 
     while True:
-         heart_rate = int(input("Enter Heart Rate : "))
+        try:
+             spo2 = int(input("Enter SpO2 (%) : "))
+             if 0 <= spo2 <= 100:
+                  break
+             print("Invalid SpO2. Enter a value between 0 and 100.")
+        except ValueError:
+             print("Invalid SpO2. Enter numbers only.")
+    while True:
+        try:
+             heart_rate = int(input("Enter Heart Rate : "))
+             if heart_rate > 0:
+                  break
+             print("Invalid Heart Rate.")
+        except ValueError:
+             print("Invalid Heart Rate. Enter numbers only.")
 
-         if 30 <= heart_rate <= 220:
-              break
-         print("Invalid Heart Rate. Enter a value between 30 and 220.")
-    heart_rate_status = assess_heart_rate(heart_rate)
-    print("Heart Rate :", heart_rate_status)
+    while True:
+        try:
+             respiratory_rate = int(input("Enter Respiratory Rate : "))
+             if respiratory_rate > 0:
+                  break
+             print("Invalid Respiratory Rate. Enter numbers only.")
+        except ValueError:
+             print("Invalid Respiratory Rate. Enter numbers only.")
 
     while True:
         temperature = float(input("Enter Temperature (°C) : "))
-        if 25 <= temperature <= 45:
-             break
-    print("Invalid Temperature. Enter a value between 25°C and 45°C.")
+        try:
+            if 25 <= temperature <= 45:
+                break
+            print("Invalid Temperature.")
+        except ValueError:
+            print("Enter a valid temperature.")
+    bp_status = assess_blood_pressure(systolic, diastolic)
+    spo2_status = assess_spo2(spo2)
+    heart_rate_status = assess_heart_rate(heart_rate)
     temperature_status = assess_temperature(temperature)
-    print("Temperature :", temperature_status)
-
-    while True:
-         respiratory_rate = int(input("Enter Respiratory Rate : "))
-         if 5 <= respiratory_rate <= 60:
-              break
-    print("Invalid Respiratory Rate. Enter a value between 5 and 60.")
     respiratory_rate_status = assess_respiratory_rate(respiratory_rate)
-    print("Respiratory rate :", respiratory_rate_status)
 
     risk_score = 0
-
-    if bp_status == "LOW" or bp_status == "HIGH":
+    if bp_status != "NORMAL":
+        risk_score = risk_score + 1
+    if spo2_status != "NORMAL":
+        risk_score = risk_score + 1
+    if heart_rate_status != "NORMAL":
+        risk_score = risk_score + 1
+    if respiratory_rate_status != "NORMAL":
+         risk_score = risk_score + 1
+    if temperature_status != "NORMAL":
         risk_score = risk_score + 1
 
-    if spo2_status == "LOW":
-        risk_score = risk_score + 1
-    elif spo2_status == "VERY LOW":
-        risk_score = risk_score + 2
-
-    if heart_rate_status == "LOW" or heart_rate_status == "HIGH":
-        risk_score = risk_score + 1
-
-    if temperature_status == "LOW" or temperature_status == "HIGH":
-        risk_score = risk_score + 1
-
-    if respiratory_rate_status == "LOW" or respiratory_rate_status == "HIGH":
-        risk_score = risk_score + 1
-    print("\nRisk Score :", risk_score)
-    if risk_score == 0:
+    if risk_score >= 3:
+        overall_status = "CRITICAL"
+    elif risk_score >= 1:
+        overall_status = "NEEDS ATTENTION"
+    else:
         overall_status = "NORMAL"
 
-    elif risk_score <= 2:
-        overall_status = "NEEDS ATTENTION"
+    print("\n--- Clinical Assessment Results ---")
+    print("-" * 40)
+    print("Blood Pressure   :", bp_status)
+    print("SpO2             :", spo2_status)
+    print("Heart Rate       :", heart_rate_status)
+    print("Respiratory Rate :", respiratory_rate_status)
+    print("Temperature      :", temperature_status)
+    print("-" * 40)
+    print("Risk Score       :", risk_score)
+    print("Overall Status   :", overall_status)
+    print("-" * 40)
 
-    else:
-        overall_status = "CRITICAL"
 
-    print("Overall Patient Status :", overall_status)
+
     file = open("assessments.csv", "a")
-
-    file.write(patient_id + "," + str(systolic) + "," + str(diastolic) + "," + str(spo2) + "," + str(heart_rate) + "," +
-    str(temperature) + "," + str(respiratory_rate) + "," + str(risk_score) + "," + overall_status + "\n")
-
+    file.write(
+        patient_id + "," + patient_name + "," +
+        str(bed_number) + "," + str(systolic) + "," + str(diastolic) + "," + str(spo2) + "," + str(heart_rate)+ ","+
+        str(respiratory_rate) + "," + str(temperature) +","+ bp_status + "," + spo2_status + "," +
+        heart_rate_status + "," + respiratory_rate_status + "," + temperature_status + "," +
+        str(risk_score) + "," + overall_status +"\n")
     file.close()
-
-    print("Assessment Saved Successfully")
-
+    print("\nAssessment Saved Successfully.")
+    
 def view_assessments():
     print("\nView Assessment")
-    print("_"* 20)
+    print("_" * 20)
+    patient_id = input("Enter Patient ID : ").strip().upper()
     file = open("assessments.csv", "r")
-    patient_id = input("Enter Patient ID : ")
     found = False
     for line in file:
-        patient_assess = line.split(",")
-        if patient_assess[0] == patient_id:
-            found=True
-            print("\nPatient Assessment")
+        patient_assess = line.strip().split(",")
+        if len(patient_assess) != 16:
+            continue
+        if patient_assess[0].upper() == patient_id: 
+            found = True
+            print("\n  Patient Details")
+            print("-" * 30)
             print("Patient ID       :", patient_assess[0])
-            print("Systolic BP      :", patient_assess[1])
-            print("Diastolic BP     :", patient_assess[2])
-            print("SpO2             :", patient_assess[3])
-            print("Heart Rate       :", patient_assess[4])
-            print("Temperature      :", patient_assess[5])
-            print("Respiratory Rate :", patient_assess[6])
-            print("Risk Score       :", patient_assess[7])
-            print("Overall Status   :", patient_assess[8])
+            print("Patient Name     :", patient_assess[1])
+            print("Bed Number       :", patient_assess[2])
+            print("-"* 30)
+
+            print("\n  Clinical Parameters")
+            print("Systolic BP      :", patient_assess[3])
+            print("Diastolic BP     :", patient_assess[4])
+            print("SpO2             :", patient_assess[5])
+            print("Heart Rate       :", patient_assess[6])
+            print("Respiratory Rate :", patient_assess[7])
+            print("Temperature      :", patient_assess[8])
+            print("-" * 30)
+
+            print("\n  Assessment Results")
+            print("Blood Pressure      :", patient_assess[9])
+            print("SpO2 Status         :", patient_assess[10])
+            print("Heart Rate Status   :", patient_assess[11])
+            print("Respiratory Status  :", patient_assess[12])
+            print("Temperature Status  :", patient_assess[13])
+            print("Risk Score          :", patient_assess[14])
+            print("Overall Status      :", patient_assess[15])
+            print("-" *40)
+            break
     file.close()
     if found == False:
-         print("Patient not found")
-         return
+        print("Patient Assessment Not Found.")
+        return
+    
 def patient_priority():
-         print("\n--- ICU Patient Priority ---")
-         file = open("assessments.csv", "r")
-         patients = []
-         for line in file:
-              patient_assess = line.strip().split(",")
-              patient_id = patient_assess[0]
-              risk_score = int(patient_assess[7])
-              overall_status = patient_assess[8]
-              patients.append([patient_id, overall_status, risk_score])
-         file.close()
-         patients.sort(key=lambda x: x[2], reverse=True)
-         print("\nPriority Order:")
-         priority = 1
-         for patient in patients:
-              print("Priority", priority, "→", patient[0], "-", patient[1], "-", patient[2])
-              priority = priority + 1
+    print("\n--- ICU Patient Priority ---")
+    file = open("assessments.csv", "r")
+    patients = []
+    for line in file:
+        patient_assess = line.strip().split(",")
+        if len(patient_assess) != 16:
+            continue
+        patient_id = patient_assess[0]
+        patient_name = patient_assess[1]
+        bed_number = patient_assess[2]
+        bp_status = patient_assess[9]
+        spo2_status = patient_assess[10]
+        heart_rate_status = patient_assess[11]
+        respiratory_rate_status = patient_assess[12]
+        temperature_status = patient_assess[13]
+
+        risk_score = int(patient_assess[14])
+        overall_status = patient_assess[15]
+
+        focus = []
+
+        if bp_status != "NORMAL":
+            focus.append("BP")
+        if spo2_status != "NORMAL":
+            focus.append("SpO2")
+        if heart_rate_status != "NORMAL":
+            focus.append("Heart Rate")
+        if respiratory_rate_status != "NORMAL":
+            focus.append("Respiratory Rate")
+        if temperature_status != "NORMAL":
+            focus.append("Temperature")
+        if len(focus) == 0:
+            focus_on = "None"
+        else:
+            focus_on = ", ".join(focus)
+
+        patients.append([ patient_id, patient_name, bed_number, risk_score, focus_on,overall_status ])
+    file.close()
+    patients.sort(key=lambda x: x[3], reverse=True)
+    print("\n   Priority Order")
+    print("-" * 50)
+
+    priority = 1
+    for patient in patients:
+        print("\n   Priority", priority)
+        print("Patient ID   :", patient[0])
+        print("Patient Name :", patient[1])
+        print("Bed Number   :", patient[2])
+        print("Risk Score   :", patient[3])
+        print("Focus On     :", patient[4])
+        print("Status       :", patient[5])
+        print("-" * 50)
+        priority = priority + 1
 
 menu()
  
